@@ -1,44 +1,39 @@
 package me.tnlorenz.panels;
 
+import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import me.tnlorenz.tools.JTilerTool;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ToolsPanel extends JPanel {
+public class ToolsPanel extends FlowPane {
 
     private final List<JTilerTool> toolCollection = new ArrayList<>();
 
     public ToolsPanel() {
-        this.setLayout(new FlowLayout());
-
-        /*for (int i = 0; i < toolCollection.size(); i++) {
-            JTilerTool tool = toolCollection.get(i);
-            JButton button = new JButton(tool.getIcon());
-            button.setToolTipText(tool.getTooltip());
-            this.add(button);
-        }*/
+        setHgap(6);
+        setVgap(6);
     }
 
     public void addTool(JTilerTool tool) {
         toolCollection.add(tool);
 
-        ImageIcon raw = tool.getIcon();
-        Image scaled = raw.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
-        ImageIcon icon = new ImageIcon(scaled);
+        Image image = tool.getIcon();
+        ImageView view = new ImageView(image);
+        view.setFitWidth(64);
+        view.setFitHeight(64);
+        view.setPreserveRatio(true);
 
-        JButton button = new JButton(icon);
+        Button button = new Button();
+        button.setGraphic(view);
+        button.setPrefSize(64, 64);
+        button.setTooltip(new Tooltip(tool.getTooltip()));
 
-        button.setToolTipText(tool.getTooltip());
-        button.setPreferredSize(new Dimension(64, 64));
-        button.setMinimumSize(new Dimension(32, 32));
-        button.setMaximumSize(new Dimension(128, 128));
-
-        this.add(button);
-        this.revalidate();
-        this.repaint();
+        getChildren().add(button);
     }
 
     public List<JTilerTool> getToolCollection() {

@@ -1,12 +1,12 @@
 package me.tnlorenz.tools;
 
-import javax.swing.*;
+import javafx.scene.image.Image;
 
 public abstract class JTilerTool {
     protected String tooltip;
-    protected ImageIcon icon;
+    protected Image icon;
 
-    public JTilerTool(String tooltip, ImageIcon icon) {
+    public JTilerTool(String tooltip, Image icon) {
         this.tooltip = tooltip;
         this.icon = icon;
     }
@@ -15,7 +15,7 @@ public abstract class JTilerTool {
         return this.tooltip;
     }
 
-    public ImageIcon getIcon() {
+    public Image getIcon() {
         return this.icon;
     }
 }

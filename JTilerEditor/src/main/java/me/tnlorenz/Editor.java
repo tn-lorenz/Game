@@ -1,18 +1,21 @@
 package me.tnlorenz;
 
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.control.SplitPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import me.tnlorenz.format.JTilerSceneFormat;
 import me.tnlorenz.panels.TilesPanel;
 import me.tnlorenz.panels.ToolsPanel;
 import me.tnlorenz.tools.Erase;
-import me.tnlorenz.tools.JTilerTool;
 import me.tnlorenz.tools.Pen;
 import me.tnlorenz.tools.Select;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -20,149 +23,108 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Editor extends JFrame implements ActionListener {
+public class Editor {
 
-    private JMenuBar menu;
-    private JMenu fileMenu, editMenu, helpMenu;
-    private JMenuItem newFileItem, openFileItem, saveFileItem, saveFileAsItem, exitItem;
-
-    private JSplitPane splitPane, splitPlaneLeft;
-    private JPanel tilesPanel, toolsPanel, viewPanel;
-
-    private List<JTilerSceneFormat.Entry> sceneEntries = new ArrayList<>();
-    private List<File> tileSetCollectionEntries = new ArrayList<>();
+    private final List<JTilerSceneFormat.Entry> sceneEntries = new ArrayList<>();
 
     public Editor() {
-        super("JTiler Editor | 2026 (c) Tim-Niklas Lorenz");
-        this.setResizable(true);
-        this.setSize(900, 600);
-        this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        Platform.startup(this::init);
+    }
 
-        URL imageUrl = Main.class.getClassLoader().getResource("JLogo.png");
-        if (imageUrl != null) {
-            ImageIcon image = new ImageIcon(imageUrl);
-            this.setIconImage(image.getImage());
+    private void init() {
+        Stage stage = new Stage();
+
+        stage.setTitle("JTiler Editor | 2026 (c) Tim-Niklas Lorenz");
+        stage.setWidth(900);
+        stage.setHeight(600);
+
+        URL iconUrl = getClass().getClassLoader().getResource("JLogo.png");
+        if (iconUrl != null) {
+            stage.getIcons().add(new Image(iconUrl.toExternalForm()));
         }
 
-        this.setJMenuBar(getBar());
-        this.add(getJSplitPane());
-        this.setVisible(true);
+        BorderPane root = new BorderPane();
+        root.setTop(createMenuBar(stage));
+        root.setCenter(createSplitPane());
+
+        stage.setScene(new Scene(root));
+        stage.show();
     }
 
-    private JMenuBar getBar() {
-        menu = new JMenuBar();
+    private MenuBar createMenuBar(Stage stage) {
+        MenuItem newFile = new MenuItem("New");
+        MenuItem openFile = new MenuItem("Open");
+        MenuItem saveFile = new MenuItem("Save");
+        MenuItem saveFileAs = new MenuItem("Save As...");
+        MenuItem exit = new MenuItem("Exit");
 
-        fileMenu = new JMenu("File");
-        editMenu = new JMenu("Edit");
-        helpMenu = new JMenu("Help");
+        newFile.setOnAction(e -> {
+            sceneEntries.clear();
+            chooseFile(stage, true);
+        });
 
-        newFileItem = new JMenuItem("New");
-        openFileItem = new JMenuItem("Open");
-        saveFileItem = new JMenuItem("Save");
-        saveFileAsItem = new JMenuItem("Save As...");
-        exitItem = new JMenuItem("Exit");
+        openFile.setOnAction(e -> chooseFile(stage, false));
+        saveFile.setOnAction(e -> chooseFile(stage, true));
+        saveFileAs.setOnAction(e -> chooseFile(stage, true));
+        exit.setOnAction(e -> Platform.exit());
 
-        newFileItem.setActionCommand("NEW_FILE");
-        openFileItem.setActionCommand("OPEN_FILE");
-        saveFileItem.setActionCommand("SAVE_FILE");
-        saveFileAsItem.setActionCommand("SAVE_FILE_AS");
-        exitItem.setActionCommand("EXIT");
+        Menu fileMenu = new Menu("File", null, newFile, openFile, saveFile, saveFileAs, exit);
+        Menu editMenu = new Menu("Edit");
+        Menu helpMenu = new Menu("Help");
 
-        newFileItem.addActionListener(this);
-        openFileItem.addActionListener(this);
-        saveFileItem.addActionListener(this);
-        saveFileAsItem.addActionListener(this);
-        exitItem.addActionListener(this);
-
-        fileMenu.add(newFileItem);
-        fileMenu.add(openFileItem);
-        fileMenu.add(saveFileItem);
-        fileMenu.add(saveFileAsItem);
-        fileMenu.add(exitItem);
-
-        menu.add(fileMenu);
-        menu.add(editMenu);
-        menu.add(helpMenu);
-
-        return menu;
+        return new MenuBar(fileMenu, editMenu, helpMenu);
     }
 
-    private JSplitPane getJSplitPane() {
-        splitPlaneLeft = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+    private SplitPane createSplitPane() {
+        TilesPanel tilesPanel = new TilesPanel();
+        ToolsPanel toolsPanel = new ToolsPanel();
+        Pane viewPanel = new Pane();
 
-        tilesPanel = new TilesPanel();
-        toolsPanel = new ToolsPanel();
-        viewPanel  = new JPanel();
+        toolsPanel.addTool(new Pen());
+        toolsPanel.addTool(new Select());
+        toolsPanel.addTool(new Erase());
 
-        setupTools((ToolsPanel) toolsPanel);
+        SplitPane leftSplit = new SplitPane(tilesPanel, toolsPanel);
+        leftSplit.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        leftSplit.setDividerPositions(0.6);
 
-        tilesPanel.setBackground(Color.LIGHT_GRAY);
-        toolsPanel.setBackground(Color.LIGHT_GRAY);
-        viewPanel.setBackground(Color.LIGHT_GRAY);
+        SplitPane mainSplit = new SplitPane(leftSplit, viewPanel);
+        mainSplit.setDividerPositions(0.28);
 
-        splitPlaneLeft.setTopComponent(tilesPanel);
-        splitPlaneLeft.setBottomComponent(toolsPanel);
-        splitPlaneLeft.setDividerSize(4);
-        splitPlaneLeft.setDividerLocation(250);
-
-        splitPane.setLeftComponent(splitPlaneLeft);
-        splitPane.setRightComponent(viewPanel);
-        splitPane.setDividerSize(6);
-        splitPane.setDividerLocation(250);
-
-        return splitPane;
+        return mainSplit;
     }
 
-    private void setupTools(ToolsPanel panel) {
-        panel.addTool(new Pen());
-        panel.addTool(new Select());
-        panel.addTool(new Erase());
-    }
+    private void chooseFile(Stage stage, boolean saveDialog) {
+        FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("JTiler Files (.jts)", "*.jts")
+        );
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        switch (e.getActionCommand()) {
-            case "NEW_FILE" -> {
+        File file = saveDialog
+                ? chooser.showSaveDialog(stage)
+                : chooser.showOpenDialog(stage);
+
+        if (file == null) return;
+
+        if (saveDialog && !file.getName().toLowerCase().endsWith(".jts")) {
+            file = new File(file.getParentFile(), file.getName() + ".jts");
+        }
+
+        Path path = file.toPath();
+
+        try {
+            if (saveDialog) {
+                JTilerSceneFormat.write(path, sceneEntries);
+                System.out.println("Saved file: " + file.getAbsolutePath());
+            } else {
                 sceneEntries.clear();
-                chooseFile(true);
+                sceneEntries.addAll(JTilerSceneFormat.read(path));
+                System.out.println("Loaded file: " + file.getAbsolutePath() + " (" + sceneEntries.size() + " entries)");
             }
-            case "OPEN_FILE" -> chooseFile(false);
-            case "SAVE_FILE" -> chooseFile(true); // TODO
-            case "SAVE_FILE_AS" -> chooseFile(true);
-            case "EXIT" -> this.dispose();
-            default -> {}
-        }
-    }
-
-    private void chooseFile(boolean saveDialog) {
-        JFileChooser fileChooser = new JFileChooser();
-        FileNameExtensionFilter fileFilter = new FileNameExtensionFilter("JTiler Files (.jts)", "jts");
-        fileChooser.setFileFilter(fileFilter);
-
-        int option = saveDialog ? fileChooser.showSaveDialog(this) : fileChooser.showOpenDialog(this);
-
-        if(option == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-
-            if(saveDialog && !file.getName().toLowerCase().endsWith(".jts")) {
-                file = new File(file.getParentFile(), file.getName() + ".jts");
-            }
-
-            Path path = file.toPath();
-
-            try {
-                if(saveDialog) {
-                    JTilerSceneFormat.write(path, sceneEntries);
-                    System.out.println("Saved file: " + file.getAbsolutePath());
-                } else {
-                    sceneEntries = JTilerSceneFormat.read(path);
-                    System.out.println("Loaded file: " + file.getAbsolutePath() + " (" + sceneEntries.size() + " entries)");
-                }
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error handling file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
+        } catch (IOException ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK);
+            alert.setHeaderText("Error handling file");
+            alert.showAndWait();
         }
     }
 }

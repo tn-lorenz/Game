@@ -1,40 +1,31 @@
 package me.tnlorenz.panels;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
-public class TilesPanel extends JPanel implements ActionListener {
+public class TilesPanel extends VBox {
 
-    private final JLabel infoLabel;
-    private final JButton selectFileButton;
+    private final Label infoLabel;
+    private final Button selectFileButton;
 
     public TilesPanel() {
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignment(Pos.CENTER);
+        setSpacing(8);
 
-        infoLabel = new JLabel("No textures loaded.");
-        infoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        infoLabel = new Label("No textures loaded.");
+        selectFileButton = new Button("Select file");
 
-        selectFileButton = new JButton("Select file");
-        selectFileButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        selectFileButton.addActionListener(this);
+        selectFileButton.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("PNG Image", "*.png")
+            );
+            chooser.showOpenDialog(getScene().getWindow());
+        });
 
-        this.add(Box.createVerticalGlue());
-        this.add(infoLabel);
-        this.add(Box.createRigidArea(new Dimension(0, 8)));
-        this.add(selectFileButton);
-        this.add(Box.createVerticalGlue());
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if(e.getSource() == selectFileButton) {
-            JFileChooser fileChooser = new JFileChooser();
-            FileNameExtensionFilter fileFilter = new FileNameExtensionFilter("PNG Image", "png", "PNG");
-            fileChooser.setFileFilter(fileFilter);
-            fileChooser.showOpenDialog(this);
-        }
+        getChildren().addAll(infoLabel, selectFileButton);
     }
 }
