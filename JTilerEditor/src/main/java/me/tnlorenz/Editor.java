@@ -58,15 +58,15 @@ public class Editor {
         MenuItem saveFileAs = new MenuItem("Save As...");
         MenuItem exit = new MenuItem("Exit");
 
-        newFile.setOnAction(e -> {
+        newFile.setOnAction(_ -> {
             sceneEntries.clear();
             chooseFile(stage, true);
         });
 
-        openFile.setOnAction(e -> chooseFile(stage, false));
-        saveFile.setOnAction(e -> chooseFile(stage, true));
-        saveFileAs.setOnAction(e -> chooseFile(stage, true));
-        exit.setOnAction(e -> Platform.exit());
+        openFile.setOnAction(_ -> chooseFile(stage, false));
+        saveFile.setOnAction(_ -> chooseFile(stage, true));
+        saveFileAs.setOnAction(_ -> chooseFile(stage, true));
+        exit.setOnAction(_ -> Platform.exit());
 
         Menu fileMenu = new Menu("File", null, newFile, openFile, saveFile, saveFileAs, exit);
         Menu editMenu = new Menu("Edit");
