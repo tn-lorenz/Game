@@ -9,6 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.control.SplitPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
 import me.tnlorenz.format.JTilerSceneFormat;
 import me.tnlorenz.panels.TilesPanel;
 import me.tnlorenz.panels.ToolsPanel;
