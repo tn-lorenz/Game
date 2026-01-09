@@ -97,12 +97,10 @@ public class Editor {
     private void chooseFile(Stage stage, boolean saveDialog) {
         FileChooser chooser = new FileChooser();
         chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("JTiler Files (.jts)", "*.jts")
+                new FileChooser.ExtensionFilter("JTiler Files", "*.jts")
         );
 
-        File file = saveDialog
-                ? chooser.showSaveDialog(stage)
-                : chooser.showOpenDialog(stage);
+        File file = saveDialog ? chooser.showSaveDialog(stage) : chooser.showOpenDialog(stage);
 
         if (file == null) return;
 
